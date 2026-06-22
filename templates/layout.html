@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Duty Tracker</title>
+
+    <!-- Google font  -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Your styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=1">
+  </head>
+
+  <!-- note: server should render ongoing_start_iso into this attribute for the precise timer -->
+  <body data-ongoing-start-iso="{{ ongoing_start_iso if ongoing_start_iso else '' }}">
+    <nav class="navbar navbar-expand-lg navbar-light navbar-modern py-3">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+          <span class="brand-mark">DT</span>
+          <div>
+            <div class="fw-semibold">Duty Tracker</div>
+            <small class="text-muted d-block">Daily time & overtime</small>
+          </div>
+        </a>
+
+        <div class="ms-auto d-flex align-items-center gap-3">
+          <div id="local-clock" class="text-muted small"></div>
+          <button id="reset-btn-nav" class="btn btn-sm btn-outline-danger d-none"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container my-4">
+      {% block content %}{% endblock %}
+
+
+<!-- RESET CONFIRM WARNING CARD -->
+<div id="reset-warning" class="reset-warning d-none">
+  <div class="warning-card shadow">
+    <div class="warning-icon">
+      <i class="bi bi-x-circle-fill"></i>
+    </div>
+    <div class="warning-text">
+      <h5 class="mb-1">Reset All Data?</h5>
+      <p class="small mb-3">This will permanently delete all records, sessions, and work history.</p>
+    </div>
+
+    <div class="d-flex gap-2 mt-2">
+      <button id="cancel-reset" class="btn btn-light flex-fill">Cancel</button>
+      <button id="confirm-reset" class="btn btn-danger flex-fill">Yes, Reset</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- GLOBAL DYNAMIC CONFIRMATION CARD -->
+<div id="confirm-overlay" class="confirm-overlay d-none">
+  <div class="confirm-card shadow">
+
+    <div class="confirm-icon">
+      <i id="confirm-icon" class="bi bi-question-circle-fill"></i>
+    </div>
+
+    <div class="confirm-text">
+      <h5 id="confirm-title" class="mb-1">Confirm Action</h5>
+      <p id="confirm-desc" class="small mb-3">Are you sure?</p>
+    </div>
+
+    <div class="d-flex gap-2 mt-2">
+      <button id="confirm-cancel" class="btn btn-light flex-fill">Cancel</button>
+      <button id="confirm-ok" class="btn btn-primary flex-fill">OK</button>
+    </div>
+
+  </div>
+</div>
+
+
+    </main>
+
+   <footer class="footer-fixed footer-glass text-center py-2 small">
+  Mukesh &copy; {{ now().year if false else '' }} — Made with
+  <i class="bi bi-heart-fill text-danger"></i>
+</footer>
+
+<!-- Floating Error Toast -->
+<div id="error-toast" class="error-toast d-none"></div>
+
+
+<!-- Floating Toasts -->
+<div id="error-toast" class="toast-msg toast-error d-none"></div>
+<div id="success-toast" class="toast-msg toast-success d-none"></div>
+
+
+<audio id="start-audio" preload="auto">
+  <source src="{{ url_for('static', filename='sounds/start.mp3') }}" type="audio/mpeg">
+</audio>
+
+<audio id="done-audio" preload="auto">
+  <source src="{{ url_for('static', filename='sounds/done.mp3') }}" type="audio/mpeg">
+</audio>
+
+<audio id="duplicated-audio" preload="auto">
+  <source src="{{ url_for('static', filename='sounds/duplicated.mp3') }}" type="audio/mpeg">
+</audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=1" defer></script>
+  </body>
+</html>

@@ -1,0 +1,248 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<div class="row g-4">
+
+
+  <!-- LEFT SIDE -->
+  <div class="col-lg-5">
+
+    <!-- Today Card -->
+    <div class="card shadow-sm card-modern">
+      <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h5 class="card-title mb-0">Today</h5>
+            <small class="text-muted">Daily duty tracker</small>
+          </div>
+
+          <div class="text-end">
+            <div class="small text-muted">Target</div>
+            <div class="fw-semibold">
+              {{ (daily_seconds // 3600) }}h {{ ((daily_seconds % 3600)//60) }}m
+            </div>
+          </div>
+        </div>
+
+        <!-- Today Display -->
+        <div class="my-3 p-3 bg-light rounded-3 today-box">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="small text-muted">Worked</div>
+              <div id="today-time" class="h5 mb-0">
+                {{ seconds_to_hms(today_seconds or 0) }}
+              </div>
+            </div>
+
+            <div class="text-end">
+              <div class="small text-muted">Overtime</div>
+              <div id="today-ot" class="h5 mb-0 text-danger">
+                {{ seconds_to_hms(today_overtime or 0) }}
+              </div>
+
+              {% if today_overtime == today_seconds and today_seconds > 0 %}
+                <div class="mt-1">
+                  <span class="badge bg-danger-subtle text-danger sunday-badge">
+                    Sunday — Full Overtime
+                  </span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="d-flex gap-2 mb-3">
+          <button type="button" id="start-btn" class="btn btn-success btn-lg flex-fill">
+            <i class="bi bi-play-fill me-2"></i>Start
+          </button>
+          <button type="button" id="done-btn" class="btn btn-primary btn-lg flex-fill">
+            <i class="bi bi-stop-fill me-2"></i>Done
+          </button>
+        </div>
+
+        <button type="button" id="reset-btn" class="btn btn-outline-danger w-100">
+          <i class="bi bi-x-circle me-2"></i>Reset All
+        </button>
+
+        {% if ongoing_start_local %}
+        <div class="mt-4">
+          <small class="text-muted">Ongoing since:</small>
+          <div class="d-flex align-items-center gap-2 mt-1">
+            <div class="fw-medium">{{ ongoing_start_local }}</div>
+            <div id="running-timer"
+                 class="badge bg-primary text-white rounded-pill"></div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <!-- Quick OT -->
+    <div class="card shadow-sm card-modern mt-3">
+      <div class="card-body">
+        <h6 class="mb-3">Quick: Show OT for a Date</h6>
+
+        <div class="row g-2">
+          <div class="col-8">
+            <input id="day-input" type="date" class="form-control">
+          </div>
+          <div class="col-4">
+            <button type="button" id="show-ot"
+                    class="btn btn-outline-secondary w-100">
+              Show
+            </button>
+          </div>
+        </div>
+
+        <div id="ot-result" class="mt-3 text-muted"></div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="card mt-3 shadow-sm card-modern">
+      <div class="card-body">
+        <h6 class="mb-3">Settings</h6>
+
+        <div class="row g-3 align-items-center salary-row">
+          <div class="col-12 col-md-7">
+            <label class="form-label small mb-1">Monthly salary</label>
+            <input id="user-salary" type="number" class="form-control"
+                   placeholder="e.g. 13000">
+
+            <div id="ot-rate-line"
+                 class="small text-primary mt-1 d-none fw-semibold">
+              OT Rate: <span id="ot-rate-value"></span> / hour
+            </div>
+          </div>
+
+          <div class="col-12 col-md-5 d-flex gap-2 align-items-end">
+            <button type="button" id="save-salary"
+                    class="btn btn-primary flex-fill">
+              Save
+            </button>
+            <button type="button" id="clear-salary"
+                    class="btn btn-outline-secondary flex-fill">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-2 small text-muted">
+          Overtime rate = 130% of hourly wage (auto-calculated).
+        </div>
+      </div>
+    </div>
+
+    <!-- Earnings Calculator -->
+    <div class="card mt-3 shadow-sm card-modern">
+      <div class="card-body">
+        <h6 class="mb-3">Overtime Earnings Calculator</h6>
+
+        <input id="earn-day" type="date" class="form-control">
+
+        <div class="d-flex gap-2 mt-3">
+          <button type="button" id="calc-earn"
+                  class="btn btn-outline-primary flex-fill">
+            Calculate
+          </button>
+          <button type="button" id="clear-earn"
+                  class="btn btn-outline-secondary flex-fill">
+            Clear
+          </button>
+        </div>
+
+        <div id="earn-result" class="mt-3" style="min-height:48px;"></div>
+      </div>
+    </div>
+
+  </div> <!-- ✅ END LEFT COLUMN -->
+
+  <!-- RIGHT SIDE -->
+  <div class="col-lg-7">
+    <div class="card shadow-sm card-modern">
+      <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="card-title mb-0">History</h5>
+          <small class="text-muted">Last 30 days</small>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>In</th>
+                <th>Out</th>
+                <th>Worked</th>
+                <th>Overtime</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              {% if history %}
+                {% for r in history %}
+                <tr class="{% if r.overtime == r.worked and r.worked > 0 %}sunday-row{% endif %}">
+                  <td class="fw-medium">
+                    {{ r.day }}
+                    {% if r.overtime == r.worked and r.worked > 0 %}
+                      <span class="badge bg-danger-subtle text-danger ms-2">
+                        Sunday
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted small">
+  {{ r.punch_in or '—' }}
+</td>
+
+<td class="text-muted small">
+  {{ r.punch_out or '—' }}
+</td>
+
+<td>{{ seconds_to_hms(r.worked) }}</td>
+
+<td class="text-danger fw-semibold">
+  {{ seconds_to_hms(r.overtime) }}
+</td>
+<td>
+  {% if r.late %}
+    {% if r.late.level == 'ok' %}
+      <span class="badge bg-success-subtle text-success">
+        {{ r.late.label }}
+      </span>
+    {% elif r.late.level == 'warn' %}
+      <span class="badge bg-warning-subtle text-warning">
+        {{ r.late.label }}
+      </span>
+    {% else %}
+      <span class="badge bg-danger-subtle text-danger">
+        {{ r.late.label }}
+      </span>
+    {% endif %}
+  {% else %}
+    —
+  {% endif %}
+</td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="3" class="text-muted">No records yet</td>
+                </tr>
+              {% endif %}
+
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
